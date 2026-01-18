@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { PageContext, ScanResult, SEOSuggestions, ApplySelection } from '@/src/types/seo';
+import type { PageContext, ScanResult, SEOSuggestions, ApplySelection, CompetitorAnalysis } from '@/src/types/seo';
 import { scanPageContent } from '@/src/utils/seoScanner';
 import { computeSEOScore } from '@/src/utils/seoScorer';
 import { createAzureOpenAIService } from '@/src/services/azureOpenAI';
@@ -13,6 +13,7 @@ import { SEOContextForm } from './SEOContextForm';
 import { SEOSuggestionsPanel } from './SEOSuggestionsPanel';
 import { SEOApplyPanel } from './SEOApplyPanel';
 import { SEOComprehensiveResults } from './SEOComprehensiveResults';
+import { CompetitorScanner } from './CompetitorScanner';
 
 export interface SEOOptimizerProps {
   pageContent: PageContent | null;
@@ -36,6 +37,7 @@ export function SEOOptimizer({
   const [isScanning, setIsScanning] = useState(false);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [applySelection, setApplySelection] = useState<ApplySelection>({});
+  const [competitors, setCompetitors] = useState<CompetitorAnalysis[]>([]);
 
   // Scan page content
   const handleScan = useCallback(() => {
@@ -69,7 +71,8 @@ export function SEOOptimizer({
     try {
       const newSuggestions = await openAIService.generateSuggestions(
         context,
-        scanResult.pageData
+        scanResult.pageData,
+        competitors.length > 0 ? competitors : undefined
       );
       setSuggestions(newSuggestions);
       
@@ -258,7 +261,8 @@ export function SEOOptimizer({
 
       const newSuggestions = await openAIService.generateSuggestions(
         context,
-        scanResult.pageData
+        scanResult.pageData,
+        competitors.length > 0 ? competitors : undefined
       );
       setSuggestions(newSuggestions);
       
@@ -353,6 +357,19 @@ export function SEOOptimizer({
             </p>
           </div>
           <SEOContextForm context={context} onChange={setContext} />
+          
+          {/* Competitor Scanner */}
+          <div style={styles.competitorSection}>
+            <CompetitorScanner
+              onCompetitorScanned={(analysis) => {
+                setCompetitors((prev) => [...prev, analysis]);
+              }}
+              onError={(error) => {
+                console.error('Competitor scan error:', error);
+              }}
+            />
+          </div>
+
           <div style={styles.stepActions}>
             {isScanning ? (
               <LoadingButton label="Analyzing page content" />
@@ -884,6 +901,14 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-block',
     marginRight: '8px',
     animation: 'spin 1s linear infinite',
+  },
+  competitorSection: {
+    marginTop: '20px',
+    marginBottom: '20px',
+    width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
   },
 };
 

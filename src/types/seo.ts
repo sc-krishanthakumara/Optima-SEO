@@ -250,3 +250,55 @@ export interface ApplyResult {
   breakdown: ScoreBreakdown;
   diffSummary: string[];
 }
+
+// Competitor Analysis Types
+export interface CompetitorPageData {
+  metadata: PageMetadata;
+  headings: PageHeadings;
+  text: string;
+  images: {
+    id: string;
+    alt?: string;
+    src: string;
+  }[];
+  links: {
+    text?: string;
+    href: string;
+    isPlaceholder?: boolean;
+    isBroken?: boolean;
+  }[];
+  wordCount: number;
+  structuredData?: any[];
+  metaKeywords?: string[];
+  openGraph?: Record<string, string>;
+  twitterCard?: Record<string, string>;
+  metrics?: ContentMetrics;
+}
+
+export interface CompetitorData extends CompetitorPageData {
+  url: string;
+}
+
+export interface CompetitorAnalysis {
+  competitor: CompetitorData;
+  insights: {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    recommendations: string[];
+  };
+  comparison?: {
+    metadata: {
+      titleLength: { current: number; competitor: number };
+      descriptionLength: { current: number; competitor: number };
+    };
+    content: {
+      wordCount: { current: number; competitor: number };
+      headingCount: { current: number; competitor: number };
+    };
+    keywords: {
+      competitorKeywords: string[];
+      missingKeywords: string[];
+    };
+  };
+}

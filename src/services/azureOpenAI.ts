@@ -1,6 +1,6 @@
 // Azure OpenAI Service for SEO Suggestions
 
-import type { PageContext, PageData, SEOSuggestions } from '@/src/types/seo';
+import type { PageContext, PageData, SEOSuggestions, CompetitorAnalysis } from '@/src/types/seo';
 
 export interface AzureOpenAIConfig {
   endpoint: string;
@@ -24,9 +24,10 @@ export class AzureOpenAIService {
    */
   async generateSuggestions(
     context: PageContext,
-    pageData: PageData
+    pageData: PageData,
+    competitors?: CompetitorAnalysis[]
   ): Promise<SEOSuggestions> {
-    const prompt = this.buildPrompt(context, pageData);
+    const prompt = this.buildPrompt(context, pageData, competitors);
 
     try {
       const response = await fetch(
@@ -78,7 +79,7 @@ export class AzureOpenAIService {
   /**
    * Build the prompt for OpenAI - Comprehensive page analysis
    */
-  private buildPrompt(context: PageContext, pageData: PageData): string {
+  private buildPrompt(context: PageContext, pageData: PageData, competitors?: CompetitorAnalysis[]): string {
     const parts: string[] = [];
 
     parts.push(`=== CONTEXT & BUSINESS INFORMATION ===`);
@@ -219,6 +220,45 @@ export class AzureOpenAIService {
       }
     }
     
+    // Add competitor analysis if available
+    if (competitors && competitors.length > 0) {
+      parts.push(`\n=== COMPETITOR ANALYSIS ===`);
+      parts.push(`Analyzed ${competitors.length} competitor website(s). Use this data to inform your suggestions:`);
+      
+      competitors.forEach((competitorAnalysis, idx) => {
+        const comp = competitorAnalysis.competitor;
+        parts.push(`\nCompetitor ${idx + 1}: ${comp.url}`);
+        parts.push(`- Title: ${comp.metadata.title || '(missing)'} ${comp.metadata.title ? `(${comp.metadata.title.length} chars)` : ''}`);
+        parts.push(`- Description: ${comp.metadata.description || '(missing)'} ${comp.metadata.description ? `(${comp.metadata.description.length} chars)` : ''}`);
+        parts.push(`- Word Count: ${comp.wordCount} words`);
+        if (comp.headings.h1) {
+          parts.push(`- H1: ${comp.headings.h1}`);
+        }
+        if (comp.headings.h2 && comp.headings.h2.length > 0) {
+          parts.push(`- H2 Headings: ${comp.headings.h2.slice(0, 5).join(' | ')}`);
+        }
+        if (comp.metaKeywords && comp.metaKeywords.length > 0) {
+          parts.push(`- Keywords: ${comp.metaKeywords.slice(0, 10).join(', ')}`);
+        }
+        
+        // Add insights
+        if (competitorAnalysis.insights.strengths.length > 0) {
+          parts.push(`- Strengths: ${competitorAnalysis.insights.strengths.slice(0, 3).join('; ')}`);
+        }
+        if (competitorAnalysis.insights.opportunities.length > 0) {
+          parts.push(`- Opportunities: ${competitorAnalysis.insights.opportunities.slice(0, 3).join('; ')}`);
+        }
+      });
+      
+      parts.push(`\n=== COMPETITOR-BASED RECOMMENDATIONS ===`);
+      parts.push(`Based on competitor analysis:`);
+      parts.push(`- Identify keywords and phrases competitors are using that you might be missing`);
+      parts.push(`- Learn from their content structure and heading strategies`);
+      parts.push(`- Note their metadata optimization approaches`);
+      parts.push(`- Suggest improvements that help you compete effectively while maintaining your unique voice`);
+      parts.push(`- DO NOT copy content - instead, learn from their SEO strategies and adapt them to your content`);
+    }
+
     parts.push(`\n=== IMPORTANT GUIDELINES ===`);
     parts.push(`- Organize ALL suggestions by component. Include componentId, componentName, and path for each component suggestion.`);
     parts.push(`- Respect the page goal (${context.pageGoal}), tone (${context.tone}), and locale (${context.locale}).`);
@@ -230,6 +270,9 @@ export class AzureOpenAIService {
     }
     parts.push(`- Provide actionable, specific suggestions that improve SEO while maintaining readability.`);
     parts.push(`- Avoid keyword stuffing - use keywords naturally and contextually.`);
+    if (competitors && competitors.length > 0) {
+      parts.push(`- Use competitor insights to inform suggestions, but maintain originality and your unique value proposition.`);
+    }
 
     return parts.join('\n');
   }
