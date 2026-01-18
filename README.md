@@ -39,8 +39,7 @@ An AI-powered SEO optimization extension for Sitecore XM Cloud Pages that helps 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd marketplace-starter
+git clone https://github.com/sc-krishanthakumara/Optima-SEO.git
 ```
 
 ### 2. Install Dependencies
