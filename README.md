@@ -94,7 +94,7 @@ npm start
 
 1. **Build the Extension**: Run `npm run build` to create a production build
 2. **Package for Marketplace**: Follow [Sitecore Marketplace guidelines](https://doc.sitecore.com/xmc/en/developers/xm-cloud/marketplace.html) to package your extension
-3. **Install in XM Cloud**: Upload to your tenant's Marketplace
+3. **Install in XM Cloud**: Install as a XM CLud Marketplace plugin
 4. **Open in Pages**: Navigate to XM Cloud Pages and open the context panel
 5. **Start Optimizing**: The SEO Optimizer will automatically load when you select a page
 

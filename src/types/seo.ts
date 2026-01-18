@@ -185,6 +185,11 @@ export interface SEOSuggestions {
     title?: string;
     description?: string;
   };
+  headings?: {
+    h1?: string;
+    h2?: string[];
+    h3?: string[];
+  };
   
   // Component-level suggestions (organized by component)
   components?: ComponentSuggestion[];
